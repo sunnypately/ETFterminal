@@ -2,8 +2,6 @@
 
 Institutional-grade research terminal covering 18 long-duration ETFs across four sleeves — Foundational Core, Growth Engine, Dividend & Quality, and Diversifiers — with an interactive return simulator and four model portfolio allocations.
 
-**Live site:** `https://sunnypately.github.io/etf-research-terminal/` *(after Pages is enabled)*
-
 ---
 
 ## Features
@@ -22,11 +20,11 @@ Institutional-grade research terminal covering 18 long-duration ETFs across four
 
 ## Deploying to GitHub Pages
 
-1. Create a new repo named `etf-research-terminal` on GitHub.
+1. Create a new repo on GitHub (any name you like, e.g. `etf-research-terminal`).
 2. Upload the contents of this folder (`index.html`, `README.md`, `.nojekyll`) to the repo root.
 3. Go to **Settings → Pages**.
 4. Under **Source**, select **Deploy from a branch**, choose `main` (or `master`), folder `/ (root)`.
-5. Save. The site will be live at `https://<your-username>.github.io/etf-research-terminal/` in 30–60 seconds.
+5. Save. The site will be live at `https://<your-username>.github.io/<repo-name>/` in 30–60 seconds.
 
 The `.nojekyll` file is included so GitHub Pages serves the HTML directly without running Jekyll preprocessing.
 
@@ -37,7 +35,7 @@ git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin https://github.com/<your-username>/etf-research-terminal.git
+git remote add origin https://github.com/<your-username>/<repo-name>.git
 git push -u origin main
 ```
 

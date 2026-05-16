@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patel Capital — ETF Research Terminal | Core Long-Term Holdings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg-elev: #161616;
+    --bg-card: #1a1a1a;
+    --border: #262626;
+    --border-hi: #333;
+    --text: #e8e6e0;
+    --text-dim: #8a8680;
+    --text-mute: #5a5752;
+    --gold: #c9a84c;
+    --gold-dim: #8a7430;
+    --green: #4a8a5c;
+    --red: #a85050;
+    --blue: #5a7ea8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse at top left, rgba(201,168,76,0.04), transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(90,126,168,0.03), transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  .terminal { max-width: 1400px; margin: 0 auto; padding: 32px 28px 80px; position: relative; z-index: 1; }
+
+  /* ===== Header ===== */
+  .masthead {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px; margin-bottom: 28px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .brand-block .firm {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.3em;
+    color: var(--gold); text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .brand-block h1 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 30px; font-weight: 700;
+    letter-spacing: -0.01em; line-height: 1.1;
+  }
+  .brand-block h1 em {
+    color: var(--gold); font-style: italic;
+    font-weight: 400;
+  }
+  .brand-block .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text-dim);
+    margin-top: 8px; letter-spacing: 0.08em;
+  }
+  .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text-mute);
+    text-align: right; letter-spacing: 0.08em;
+    line-height: 1.8;
+  }
+  .meta .stamp { color: var(--gold-dim); }
+  .meta .analyst { color: var(--text-dim); }
+
+  /* ===== Tab nav ===== */
+  .tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+    overflow-x: auto;
+  }
+  .tab {
+    background: none; border: none;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 14px 22px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+  .tab .num {
+    color: var(--text-mute);
+    margin-right: 8px;
+    font-weight: 300;
+  }
+  .tab.active .num { color: var(--gold-dim); }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== Section headers ===== */
+  .section-head {
+    display: flex; align-items: baseline; gap: 14px;
+    margin-bottom: 20px;
+  }
+  .section-head h2 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 22px; font-weight: 700;
+  }
+  .section-head h2 em { color: var(--gold); font-weight: 400; }
+  .section-head .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text-mute);
+    letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .section-intro {
+    color: var(--text-dim);
+    max-width: 820px;
+    margin-bottom: 28px;
+    font-size: 14px; line-height: 1.75;
+  }
+  .section-intro em { color: var(--gold); font-style: italic; }
+
+  /* ===== ETF Cards ===== */
+  .tier-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.2em;
+    color: var(--gold); text-transform: uppercase;
+    margin: 32px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--border-hi);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .tier-label:first-of-type { margin-top: 0; }
+  .tier-label .desc { color: var(--text-mute); font-weight: 300; letter-spacing: 0.08em; }
+
+  .etf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 16px;
+  }
+  .etf-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 22px;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .etf-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--gold);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .etf-card:hover { border-color: var(--border-hi); }
+  .etf-card:hover::before { opacity: 1; }
+
+  .etf-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 14px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ticker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px; font-weight: 600;
+    color: var(--gold); letter-spacing: 0.02em;
+  }
+  .etf-name {
+    font-size: 12px; color: var(--text-dim);
+    margin-top: 2px; font-style: italic;
+  }
+  .er {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text-mute);
+    text-align: right; line-height: 1.5;
+    letter-spacing: 0.05em;
+  }
+  .er .val { color: var(--text); font-weight: 500; }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .stat {
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat .lbl {
+    font-size: 9px; color: var(--text-mute);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .stat .val {
+    font-size: 13px; color: var(--text); font-weight: 500;
+  }
+  .stat .val.gold { color: var(--gold); }
+
+  .thesis {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .thesis strong {
+    color: var(--gold);
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  /* ===== Simulator ===== */
+  .sim-layout {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 900px) {
+    .sim-layout { grid-template-columns: 1fr; }
+  }
+  .sim-controls {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 24px;
+    align-self: start;
+  }
+  .ctrl-block {
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ctrl-block:last-of-type { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .ctrl-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .ctrl-label .value {
+    color: var(--gold);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  .ctrl-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border-hi);
+    color: var(--text);
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  .ctrl-input:focus { outline: none; border-color: var(--gold); }
+  select.ctrl-input { cursor: pointer; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%; height: 4px;
+    background: var(--border-hi);
+    outline: none; margin: 10px 0 4px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--gold);
+    cursor: pointer; border-radius: 50%;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    background: var(--gold);
+    cursor: pointer; border: none; border-radius: 50%;
+  }
+  .range-ticks {
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--text-mute);
+    letter-spacing: 0.08em;
+  }
+
+  .sim-results {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 24px;
+  }
+  .result-headline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  @media (max-width: 700px) { .result-headline { grid-template-columns: repeat(2, 1fr); } }
+  .headline-stat .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    margin-bottom: 6px;
+  }
+  .headline-stat .val {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 24px; font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .headline-stat .val.gold { color: var(--gold); }
+  .headline-stat .val.green { color: var(--green); }
+  .headline-stat .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text-dim);
+    margin-top: 2px; letter-spacing: 0.05em;
+  }
+  .chart-wrap { height: 380px; position: relative; }
+
+  .sim-notes {
+    margin-top: 22px; padding-top: 18px;
+    border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .sim-notes strong { color: var(--gold); font-style: italic; font-weight: 400; }
+
+  /* ===== Portfolio ===== */
+  .portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 20px;
+  }
+  .portfolio-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 24px;
+  }
+  .portfolio-card h3 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .portfolio-card h3 em { color: var(--gold); font-weight: 400; }
+  .portfolio-card .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text-mute);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .alloc-row {
+    display: grid;
+    grid-template-columns: 60px 80px 1fr;
+    gap: 12px; align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(38,38,38,0.5);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .alloc-row:last-child { border-bottom: none; }
+  .alloc-row .tk { color: var(--gold); font-weight: 600; }
+  .alloc-row .pct {
+    color: var(--text);
+    text-align: right;
+  }
+  .alloc-row .bar-wrap {
+    background: var(--bg);
+    height: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .alloc-row .bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  }
+  .portfolio-notes {
+    margin-top: 18px; padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--text-dim);
+    line-height: 1.7; font-family: 'Libre Baskerville', serif;
+  }
+  .portfolio-notes strong { color: var(--gold); font-style: italic; font-weight: 400; }
+
+  /* ===== Methodology ===== */
+  .method-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 28px;
+    margin-bottom: 18px;
+  }
+  .method-card h3 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 17px; font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .method-card p {
+    color: var(--text);
+    font-size: 14px; line-height: 1.75;
+    margin-bottom: 12px;
+  }
+  .method-card p:last-child { margin-bottom: 0; }
+  .method-card em { color: var(--gold); font-style: italic; }
+
+  /* ===== Footer ===== */
+  footer {
+    margin-top: 60px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-mute);
+    letter-spacing: 0.08em;
+    line-height: 1.8;
+  }
+  footer .gold { color: var(--gold-dim); }
+</style>
+</head>
+<body>
+<div class="terminal">
+
+  <!-- ===== Masthead ===== -->
+  <header class="masthead">
+    <div class="brand-block">
+      <div class="firm">Patel Capital · Equity Research Division</div>
+      <h1>Core <em>ETF</em> Research Terminal</h1>
+      <div class="subtitle">LONG-DURATION COMPOUNDERS · CONVICTION COVERAGE · PORTFOLIO CONSTRUCTION</div>
+    </div>
+    <div class="meta">
+      <div class="stamp">REPORT · INSTITUTIONAL</div>
+      <div>COVERAGE · 18 ETFs · 4 SLEEVES</div>
+      <div id="date-stamp"></div>
+    </div>
+  </header>
+
+  <!-- ===== Tab Navigation ===== -->
+  <nav class="tabs">
+    <button class="tab active" data-tab="coverage"><span class="num">01</span>Core Coverage</button>
+    <button class="tab" data-tab="simulator"><span class="num">02</span>Return Simulator</button>
+    <button class="tab" data-tab="portfolios"><span class="num">03</span>Model Portfolios</button>
+    <button class="tab" data-tab="methodology"><span class="num">04</span>Methodology</button>
+  </nav>
+
+  <!-- ===== TAB 1: CORE COVERAGE ===== -->
+  <section class="panel active" id="coverage">
+    <div class="section-head">
+      <h2>The <em>Core Coverage Universe</em></h2>
+      <span class="tag">// 18 names · 4 sleeves</span>
+    </div>
+    <p class="section-intro">
+      A curated coverage of <em>tried-and-true ETFs</em> selected on three axes: durable structural advantage (scale, liquidity, sponsor quality), cost discipline (expense ratios benchmarked to category leaders), and a long-horizon thesis that survives a full market cycle. Names are stratified into four sleeves — <em>Foundational Core</em>, <em>Growth Engine</em>, <em>Dividend &amp; Quality</em>, and <em>Diversifiers</em> — to facilitate disciplined portfolio construction rather than ticker collection.
+    </p>
+
+    <!-- ===== Tier 1: Foundational Core ===== -->
+    <div class="tier-label">
+      <span>Tier I · Foundational Core</span>
+      <span class="desc">Broad-market beta · the spine of any long-term portfolio</span>
+    </div>
+    <div class="etf-grid">
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">VTI</div>
+            <div class="etf-name">Vanguard Total Stock Market</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.03%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$1.8T</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~3,700</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~1.3%</div></div>
+        </div>
+        <p class="thesis">
+          The single most efficient expression of "<strong>own America</strong>" in one ticker — total market exposure spanning mega-cap through small-cap with a fee structure that approaches zero. The benchmark we measure every other equity holding against. <strong>Forever-hold candidate.</strong>
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">VOO</div>
+            <div class="etf-name">Vanguard S&amp;P 500</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.03%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$1.6T</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~500</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~1.3%</div></div>
+        </div>
+        <p class="thesis">
+          Large-cap U.S. equities at institutional cost. Tilts more mega-cap than VTI, which has been a feature — not a bug — through the platform-economy era. <strong>The default unit of long-term equity ownership.</strong>
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">SPLG</div>
+            <div class="etf-name">SPDR Portfolio S&amp;P 500</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.02%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$80B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~500</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~1.3%</div></div>
+        </div>
+        <p class="thesis">
+          A <strong>lower-priced share class</strong> of S&amp;P exposure that is materially more accessible for DCA buyers and 529-style contributions. Functionally identical exposure to SPY/VOO at the lowest fee in the category.
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">ITOT</div>
+            <div class="etf-name">iShares Core S&amp;P Total Market</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.03%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$70B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~2,500</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~1.4%</div></div>
+        </div>
+        <p class="thesis">
+          The iShares mirror of VTI — useful primarily as a <strong>tax-loss-harvesting partner</strong> against VTI without triggering wash-sale rules. Same exposure, different index, identical role in a long-term sleeve.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ===== Tier 2: Growth Engine ===== -->
+    <div class="tier-label">
+      <span>Tier II · Growth Engine</span>
+      <span class="desc">Quality-growth and innovation exposure · the alpha generator</span>
+    </div>
+    <div class="etf-grid">
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">QQQM</div>
+            <div class="etf-name">Invesco NASDAQ 100</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.15%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$50B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~100</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~0.6%</div></div>
+        </div>
+        <p class="thesis">
+          The <strong>buy-and-hold share class</strong> of QQQ, with a 5bp fee advantage that compounds meaningfully over 20+ year horizons. Concentrated in mega-cap tech and consumer platform leaders that have generated the bulk of index-level returns this cycle. <strong>The growth chassis.</strong>
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">SCHG</div>
+            <div class="etf-name">Schwab U.S. Large-Cap Growth</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.04%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$45B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~250</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~0.4%</div></div>
+        </div>
+        <p class="thesis">
+          A <strong>broader growth net</strong> than QQQM at one-third the cost — captures secular winners outside the NASDAQ tape (notably healthcare and consumer-discretionary growth). Pairs naturally with a value or dividend sleeve to manage style drift.
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">VUG</div>
+            <div class="etf-name">Vanguard Growth</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.04%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$170B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~190</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~0.5%</div></div>
+        </div>
+        <p class="thesis">
+          CRSP large-cap growth methodology, very similar in spirit to SCHG with a slightly different rebalance cadence. <strong>Substitutable</strong> within a Vanguard-anchored portfolio; choose by platform, not by performance.
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">VGT</div>
+            <div class="etf-name">Vanguard Information Technology</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.09%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$90B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~320</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~0.6%</div></div>
+        </div>
+        <p class="thesis">
+          A <strong>pure-play sector vehicle</strong> for investors with high conviction in the secular hardware+software supercycle (semis, cloud infrastructure, enterprise software). Higher tracking error to S&amp;P than QQQM but cleaner sector definition. <strong>Treat as a satellite, not a core.</strong>
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ===== Tier 3: Dividend & Quality ===== -->
+    <div class="tier-label">
+      <span>Tier III · Dividend &amp; Quality</span>
+      <span class="desc">Income, drawdown management, and compounding through reinvestment</span>
+    </div>
+    <div class="etf-grid">
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">SCHD</div>
+            <div class="etf-name">Schwab U.S. Dividend Equity</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.06%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$70B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~100</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val gold">~3.5%</div></div>
+        </div>
+        <p class="thesis">
+          Screens for <strong>quality + yield + dividend growth</strong>, producing a portfolio that lags in growth-led tape and outperforms in mean-reversion regimes. The classic "<strong>shock absorber</strong>" for a tech-heavy book — and a respectable income engine in its own right.
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">DGRO</div>
+            <div class="etf-name">iShares Core Dividend Growth</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.08%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$30B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~430</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~2.3%</div></div>
+        </div>
+        <p class="thesis">
+          More <strong>diversified and less concentrated</strong> than SCHD, with a screen that weights consistent dividend growers rather than just yield. Lower headline yield but a smoother glide path — pairs well alongside SCHD rather than instead of it.
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">QUAL</div>
+            <div class="etf-name">iShares MSCI USA Quality Factor</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.15%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$50B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~125</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~1.4%</div></div>
+        </div>
+        <p class="thesis">
+          A <strong>factor tilt toward high ROE, low leverage, and stable earnings</strong> — historically a defensible risk-adjusted return profile across cycles. Useful as a quality overlay without making a yield commitment.
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">VIG</div>
+            <div class="etf-name">Vanguard Dividend Appreciation</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.05%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$90B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~340</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~1.8%</div></div>
+        </div>
+        <p class="thesis">
+          The <strong>blue-chip compounder</strong> — names with 10+ year dividend growth records, screened to exclude the highest-yielding (and therefore riskiest) cohorts. Lower yield by design; superior total return durability is the trade.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ===== Tier 4: Diversifiers ===== -->
+    <div class="tier-label">
+      <span>Tier IV · Diversifiers</span>
+      <span class="desc">Non-US, mid/small-cap, and uncorrelated exposures</span>
+    </div>
+    <div class="etf-grid">
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">VXUS</div>
+            <div class="etf-name">Vanguard Total International Stock</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.05%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$450B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~8,500</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~3.0%</div></div>
+        </div>
+        <p class="thesis">
+          <strong>Ex-US developed + emerging markets in one ticker</strong>, at near-zero cost. A genuinely diversifying exposure when U.S. valuations stretch and the dollar weakens. Modest allocation (10-20%) historically reduces portfolio volatility without materially impairing return.
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">IEFA</div>
+            <div class="etf-name">iShares Core MSCI EAFE</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.07%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$130B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~2,800</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~3.0%</div></div>
+        </div>
+        <p class="thesis">
+          <strong>Developed-markets-only</strong> alternative for investors who want international exposure without EM volatility. Cleaner for portfolio construction where EM is held separately or excluded by mandate.
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">AVUV</div>
+            <div class="etf-name">Avantis U.S. Small-Cap Value</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.25%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$15B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~750</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~1.7%</div></div>
+        </div>
+        <p class="thesis">
+          A <strong>factor-driven small-cap value sleeve</strong> from a team with deep DFA lineage. Fee is justified by the screening process; size and value premia have a defensible long-run academic basis. <strong>Patient capital required — multi-year underperformance windows are part of the deal.</strong>
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">VYM</div>
+            <div class="etf-name">Vanguard High Dividend Yield</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.06%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$60B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~550</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val gold">~2.8%</div></div>
+        </div>
+        <p class="thesis">
+          <strong>Broader-based yield exposure</strong> than SCHD with materially more holdings and less concentration risk. Functions as a value tilt with an income kicker — pairs naturally with growth-heavy core.
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">IJR</div>
+            <div class="etf-name">iShares Core S&amp;P Small-Cap</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.06%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$90B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~600</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~1.7%</div></div>
+        </div>
+        <p class="thesis">
+          The S&amp;P Small-Cap 600 carries a <strong>profitability screen</strong> that the Russell 2000 lacks — a quiet but consequential advantage. Captures the size premium without the junkiest names. <strong>The serious investor's small-cap fund.</strong>
+        </p>
+      </div>
+
+      <div class="etf-card">
+        <div class="etf-head">
+          <div>
+            <div class="ticker">BND</div>
+            <div class="etf-name">Vanguard Total Bond Market</div>
+          </div>
+          <div class="er">EXP RATIO<br><span class="val">0.03%</span></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="lbl">AUM</div><div class="val">~$120B</div></div>
+          <div class="stat"><div class="lbl">Holdings</div><div class="val gold">~11,000</div></div>
+          <div class="stat"><div class="lbl">Yield</div><div class="val">~4.5%</div></div>
+        </div>
+        <p class="thesis">
+          Investment-grade aggregate bond exposure for the <strong>fixed-income leg</strong> of the portfolio. Equity allocation should drive returns; BND exists to dampen drawdowns and provide rebalancing dry powder. Sizing is the entire decision — quality of vehicle is not in dispute.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== TAB 2: SIMULATOR ===== -->
+  <section class="panel" id="simulator">
+    <div class="section-head">
+      <h2>Return <em>Simulator</em></h2>
+      <span class="tag">// historical CAGR · forward-looking estimate</span>
+    </div>
+    <p class="section-intro">
+      A clean, transparent compounding model. Select an ETF, set initial capital, monthly contribution, and time horizon — the model returns nominal terminal value, total contributions, growth, and a year-by-year balance curve. CAGR defaults are conservative long-run averages; <em>override them if you have a stronger view</em>. <em>This is a model, not a forecast.</em>
+    </p>
+
+    <div class="sim-layout">
+      <div class="sim-controls">
+
+        <div class="ctrl-block">
+          <div class="ctrl-label">Select ETF</div>
+          <select id="etf-select" class="ctrl-input">
+            <optgroup label="Foundational Core">
+              <option value="VTI" data-cagr="10.5">VTI · Total Stock Market</option>
+              <option value="VOO" data-cagr="10.5" selected>VOO · S&amp;P 500</option>
+              <option value="SPLG" data-cagr="10.5">SPLG · SPDR S&amp;P 500</option>
+              <option value="ITOT" data-cagr="10.5">ITOT · iShares Total Market</option>
+            </optgroup>
+            <optgroup label="Growth Engine">
+              <option value="QQQM" data-cagr="13.0">QQQM · NASDAQ 100</option>
+              <option value="SCHG" data-cagr="12.0">SCHG · Large-Cap Growth</option>
+              <option value="VUG" data-cagr="12.0">VUG · Vanguard Growth</option>
+              <option value="VGT" data-cagr="13.5">VGT · Information Tech</option>
+            </optgroup>
+            <optgroup label="Dividend &amp; Quality">
+              <option value="SCHD" data-cagr="9.0">SCHD · Dividend Equity</option>
+              <option value="DGRO" data-cagr="9.5">DGRO · Dividend Growth</option>
+              <option value="QUAL" data-cagr="10.0">QUAL · Quality Factor</option>
+              <option value="VIG" data-cagr="9.5">VIG · Dividend Appreciation</option>
+            </optgroup>
+            <optgroup label="Diversifiers">
+              <option value="VXUS" data-cagr="6.5">VXUS · Intl Stock</option>
+              <option value="IEFA" data-cagr="6.5">IEFA · EAFE</option>
+              <option value="AVUV" data-cagr="10.0">AVUV · Small-Cap Value</option>
+              <option value="VYM" data-cagr="8.5">VYM · High Dividend</option>
+              <option value="IJR" data-cagr="9.5">IJR · Small-Cap</option>
+              <option value="BND" data-cagr="4.0">BND · Total Bond</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="ctrl-block">
+          <div class="ctrl-label">Initial Investment <span class="value" id="initial-val">$10,000</span></div>
+          <input type="range" id="initial" min="0" max="500000" step="1000" value="10000">
+          <div class="range-ticks"><span>$0</span><span>$500K</span></div>
+        </div>
+
+        <div class="ctrl-block">
+          <div class="ctrl-label">Monthly Contribution <span class="value" id="monthly-val">$500</span></div>
+          <input type="range" id="monthly" min="0" max="10000" step="50" value="500">
+          <div class="range-ticks"><span>$0</span><span>$10K/mo</span></div>
+        </div>
+
+        <div class="ctrl-block">
+          <div class="ctrl-label">Time Horizon <span class="value" id="years-val">20 yrs</span></div>
+          <input type="range" id="years" min="1" max="40" step="1" value="20">
+          <div class="range-ticks"><span>1 yr</span><span>40 yrs</span></div>
+        </div>
+
+        <div class="ctrl-block">
+          <div class="ctrl-label">Expected CAGR <span class="value" id="cagr-val">10.5%</span></div>
+          <input type="range" id="cagr" min="0" max="20" step="0.1" value="10.5">
+          <div class="range-ticks"><span>0%</span><span>20%</span></div>
+        </div>
+
+      </div>
+
+      <div class="sim-results">
+        <div class="result-headline">
+          <div class="headline-stat">
+            <div class="lbl">Terminal Value</div>
+            <div class="val gold" id="terminal-val">$0</div>
+            <div class="sub" id="terminal-sub">nominal · pre-tax</div>
+          </div>
+          <div class="headline-stat">
+            <div class="lbl">Total Contributed</div>
+            <div class="val" id="contributed-val">$0</div>
+            <div class="sub" id="contributed-sub">initial + monthly</div>
+          </div>
+          <div class="headline-stat">
+            <div class="lbl">Investment Growth</div>
+            <div class="val green" id="growth-val">$0</div>
+            <div class="sub" id="growth-sub">compounding</div>
+          </div>
+          <div class="headline-stat">
+            <div class="lbl">Growth Multiple</div>
+            <div class="val" id="multiple-val">0.0×</div>
+            <div class="sub" id="multiple-sub">on contributions</div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="sim-chart"></canvas>
+        </div>
+        <div class="sim-notes">
+          <strong>Model assumptions.</strong> Compounding is monthly using <code>(1 + CAGR/12)</code>. Returns are <em>nominal</em>, pre-tax, and pre-inflation. Default CAGRs are derived from long-run total-return averages of each fund's benchmark (10–20 year windows), <em>not</em> trailing 3- or 5-year figures, which are heavily distorted by post-2009 monetary regime. Real returns, after a ~2.5% inflation drag, will be materially lower in purchasing-power terms. The model does not adjust for sequence-of-returns risk, taxation, or fee drag beyond what is embedded in the headline CAGR.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TAB 3: MODEL PORTFOLIOS ===== -->
+  <section class="panel" id="portfolios">
+    <div class="section-head">
+      <h2>Model <em>Portfolios</em></h2>
+      <span class="tag">// four allocation regimes</span>
+    </div>
+    <p class="section-intro">
+      Four model allocations spanning the risk-tolerance spectrum, all assembled exclusively from the Core Coverage universe. These are <em>frameworks, not prescriptions</em> — adjust the growth/value/international weights to reflect your own conviction and time horizon. The discipline of the model is in <em>limiting overlap, controlling factor exposure, and naming the sleeves</em> so rebalancing is mechanical rather than emotional.
+    </p>
+
+    <div class="portfolio-grid">
+
+      <div class="portfolio-card">
+        <h3>The <em>Set &amp; Forget</em></h3>
+        <div class="sub">Three-fund · maximum simplicity</div>
+        <div class="alloc-row"><span class="tk">VTI</span><span class="pct">60%</span><span class="bar-wrap"><span class="bar" style="width:60%"></span></span></div>
+        <div class="alloc-row"><span class="tk">VXUS</span><span class="pct">25%</span><span class="bar-wrap"><span class="bar" style="width:25%"></span></span></div>
+        <div class="alloc-row"><span class="tk">BND</span><span class="pct">15%</span><span class="bar-wrap"><span class="bar" style="width:15%"></span></span></div>
+        <p class="portfolio-notes">
+          The classic <strong>Bogle three-fund</strong>. If a portfolio doesn't beat this benchmark on a risk-adjusted basis over a full cycle, the additional complexity isn't earning its keep. <em>The honest default.</em>
+        </p>
+      </div>
+
+      <div class="portfolio-card">
+        <h3>The <em>Growth Sleeve</em></h3>
+        <div class="sub">Aggressive · long horizon · 20+ years</div>
+        <div class="alloc-row"><span class="tk">VOO</span><span class="pct">40%</span><span class="bar-wrap"><span class="bar" style="width:40%"></span></span></div>
+        <div class="alloc-row"><span class="tk">QQQM</span><span class="pct">25%</span><span class="bar-wrap"><span class="bar" style="width:25%"></span></span></div>
+        <div class="alloc-row"><span class="tk">SCHG</span><span class="pct">15%</span><span class="bar-wrap"><span class="bar" style="width:15%"></span></span></div>
+        <div class="alloc-row"><span class="tk">AVUV</span><span class="pct">10%</span><span class="bar-wrap"><span class="bar" style="width:10%"></span></span></div>
+        <div class="alloc-row"><span class="tk">VXUS</span><span class="pct">10%</span><span class="bar-wrap"><span class="bar" style="width:10%"></span></span></div>
+        <p class="portfolio-notes">
+          Tilts hard into <strong>U.S. large-cap growth</strong> while preserving a real small-cap value sleeve as a diversifier. Expect higher peak-to-trough drawdowns; the trade is upper-quartile return potential over rolling 15-year windows.
+        </p>
+      </div>
+
+      <div class="portfolio-card">
+        <h3>The <em>Quality &amp; Income</em></h3>
+        <div class="sub">Balanced · downside-aware · 10-15 years</div>
+        <div class="alloc-row"><span class="tk">VOO</span><span class="pct">30%</span><span class="bar-wrap"><span class="bar" style="width:30%"></span></span></div>
+        <div class="alloc-row"><span class="tk">SCHD</span><span class="pct">25%</span><span class="bar-wrap"><span class="bar" style="width:25%"></span></span></div>
+        <div class="alloc-row"><span class="tk">QUAL</span><span class="pct">15%</span><span class="bar-wrap"><span class="bar" style="width:15%"></span></span></div>
+        <div class="alloc-row"><span class="tk">VIG</span><span class="pct">15%</span><span class="bar-wrap"><span class="bar" style="width:15%"></span></span></div>
+        <div class="alloc-row"><span class="tk">VXUS</span><span class="pct">10%</span><span class="bar-wrap"><span class="bar" style="width:10%"></span></span></div>
+        <div class="alloc-row"><span class="tk">BND</span><span class="pct">5%</span><span class="bar-wrap"><span class="bar" style="width:5%"></span></span></div>
+        <p class="portfolio-notes">
+          A <strong>quality-and-yield emphasis</strong> for investors who want to participate in equity returns with smoother volatility. The dividend sleeve does double duty — generating income and screening for balance-sheet resilience.
+        </p>
+      </div>
+
+      <div class="portfolio-card">
+        <h3>The <em>Core-Satellite</em></h3>
+        <div class="sub">Disciplined · factor-aware · all-weather</div>
+        <div class="alloc-row"><span class="tk">VTI</span><span class="pct">45%</span><span class="bar-wrap"><span class="bar" style="width:45%"></span></span></div>
+        <div class="alloc-row"><span class="tk">QQQM</span><span class="pct">15%</span><span class="bar-wrap"><span class="bar" style="width:15%"></span></span></div>
+        <div class="alloc-row"><span class="tk">SCHD</span><span class="pct">15%</span><span class="bar-wrap"><span class="bar" style="width:15%"></span></span></div>
+        <div class="alloc-row"><span class="tk">AVUV</span><span class="pct">10%</span><span class="bar-wrap"><span class="bar" style="width:10%"></span></span></div>
+        <div class="alloc-row"><span class="tk">VXUS</span><span class="pct">10%</span><span class="bar-wrap"><span class="bar" style="width:10%"></span></span></div>
+        <div class="alloc-row"><span class="tk">BND</span><span class="pct">5%</span><span class="bar-wrap"><span class="bar" style="width:5%"></span></span></div>
+        <p class="portfolio-notes">
+          A <strong>core-satellite construction</strong>: total-market exposure as the spine, with deliberate growth, dividend, small-value, and international satellites. The framework most analogous to an institutional-style allocation — and the one with the cleanest rebalancing math.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== TAB 4: METHODOLOGY ===== -->
+  <section class="panel" id="methodology">
+    <div class="section-head">
+      <h2>Coverage <em>Methodology</em></h2>
+      <span class="tag">// how this universe was built</span>
+    </div>
+    <p class="section-intro">
+      The coverage is intentionally <em>small</em> and intentionally <em>boring</em>. The thesis of this terminal is that for the long-horizon investor, ETF selection is largely solved — the durable alpha is in <em>position sizing, fee discipline, tax-aware location, and behavioral consistency</em>. The 18 names here meet every screen we apply.
+    </p>
+
+    <div class="method-card">
+      <h3>Inclusion criteria</h3>
+      <p>
+        Every name in coverage passes the same screens: <em>(i)</em> sponsor of meaningful scale (Vanguard, BlackRock/iShares, Schwab, State Street/SPDR, Invesco, Avantis), <em>(ii)</em> AUM sufficient to make closure risk negligible, <em>(iii)</em> expense ratio at or near category leader, <em>(iv)</em> a transparent, rules-based index methodology, <em>(v)</em> deep secondary-market liquidity, and <em>(vi)</em> a thesis that survives a full market cycle.
+      </p>
+      <p>
+        Names that score well on five of six but fail one — for example, a popular thematic ETF with a 0.75% expense ratio — are <em>deliberately excluded</em>. The cost compounds against you for thirty years; the thesis may not survive five.
+      </p>
+    </div>
+
+    <div class="method-card">
+      <h3>What we excluded — and why</h3>
+      <p>
+        <em>Thematic ETFs</em> (AI, robotics, cannabis, space, blockchain) are absent by design. Their fees are punitive, their methodologies often re-rank into whatever just rallied, and their staying power is conditional on the theme remaining narratively in vogue. They may belong in a satellite trade; they do not belong in a long-horizon core.
+      </p>
+      <p>
+        <em>Leveraged and inverse ETFs</em> (TQQQ, SOXL, FNGU, SQQQ) are explicitly excluded from the long-horizon coverage. Daily reset volatility decay makes them structurally inappropriate for buy-and-hold — they are <em>trading instruments</em>, and we cover them in a separate signals book, not here.
+      </p>
+      <p>
+        <em>Actively managed ETFs without a quantitative process</em> are excluded because the fee/performance tradeoff is unfavorable over multi-decade windows. Where active management earns its fee — small-cap value (AVUV), for example — it is included.
+      </p>
+    </div>
+
+    <div class="method-card">
+      <h3>How to use this terminal</h3>
+      <p>
+        <em>Start with Tab 03 (Model Portfolios)</em> to anchor an allocation framework. <em>Use Tab 02 (Simulator)</em> to stress-test compounding assumptions against your contribution schedule and time horizon. <em>Return to Tab 01 (Core Coverage)</em> to pressure-test individual line items against the thesis.
+      </p>
+      <p>
+        The hardest part of long-horizon investing is not selection — it is <em>doing nothing</em> for thirty years while the position works. Build the portfolio so that <em>"do nothing"</em> is a defensible posture, then defend it.
+      </p>
+    </div>
+
+    <div class="method-card">
+      <h3>Standing caveats</h3>
+      <p>
+        Not investment advice. Educational and research-oriented content. Past performance does not predict future returns. Fund AUM, expense ratios, and yield figures are point-in-time approximations and may have updated since publication. Cross-reference with fund sponsor sites before transacting.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer>
+    <div><span class="gold">PATEL CAPITAL · EQUITY RESEARCH DIVISION</span> · ETF RESEARCH TERMINAL · v1.0</div>
+    <div>COVERAGE UNIVERSE · 18 NAMES · 4 SLEEVES · 4 MODEL PORTFOLIOS</div>
+    <div>EDUCATIONAL · NOT INVESTMENT ADVICE · CONFIRM FUND DATA WITH SPONSOR BEFORE TRANSACTING</div>
+  </footer>
+
+</div>
+
+<script>
+  // ===== Date stamp =====
+  (function(){
+    const d = new Date();
+    const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const stamp = `${d.getDate().toString().padStart(2,'0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    document.getElementById('date-stamp').textContent = stamp;
+  })();
+
+  // ===== Tabs =====
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById(t.dataset.tab).classList.add('active');
+      // Recompute chart on simulator focus to ensure correct sizing
+      if (t.dataset.tab === 'simulator') setTimeout(updateSim, 50);
+    });
+  });
+
+  // ===== Simulator =====
+  const els = {
+    select: document.getElementById('etf-select'),
+    initial: document.getElementById('initial'),
+    monthly: document.getElementById('monthly'),
+    years: document.getElementById('years'),
+    cagr: document.getElementById('cagr'),
+    initialVal: document.getElementById('initial-val'),
+    monthlyVal: document.getElementById('monthly-val'),
+    yearsVal: document.getElementById('years-val'),
+    cagrVal: document.getElementById('cagr-val'),
+    terminal: document.getElementById('terminal-val'),
+    terminalSub: document.getElementById('terminal-sub'),
+    contributed: document.getElementById('contributed-val'),
+    growth: document.getElementById('growth-val'),
+    multiple: document.getElementById('multiple-val'),
+  };
+
+  function fmt(n){
+    if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return '$' + (n/1e3).toFixed(1) + 'K';
+    return '$' + Math.round(n).toLocaleString();
+  }
+  function fmtFull(n){ return '$' + Math.round(n).toLocaleString(); }
+
+  let chart = null;
+
+  function updateSim(){
+    const initial = parseFloat(els.initial.value);
+    const monthly = parseFloat(els.monthly.value);
+    const years = parseInt(els.years.value);
+    const cagr = parseFloat(els.cagr.value) / 100;
+    const monthlyRate = cagr / 12;
+    const months = years * 12;
+
+    els.initialVal.textContent = fmtFull(initial);
+    els.monthlyVal.textContent = fmtFull(monthly);
+    els.yearsVal.textContent = years + ' yrs';
+    els.cagrVal.textContent = (cagr*100).toFixed(1) + '%';
+
+    // Build year-by-year balances
+    const yearLabels = ['Y0'];
+    const balanceSeries = [initial];
+    const contribSeries = [initial];
+    let balance = initial;
+    let contributed = initial;
+
+    for (let m = 1; m <= months; m++){
+      balance = balance * (1 + monthlyRate) + monthly;
+      contributed += monthly;
+      if (m % 12 === 0){
+        yearLabels.push('Y' + (m/12));
+        balanceSeries.push(balance);
+        contribSeries.push(contributed);
+      }
+    }
+
+    const terminal = balance;
+    const growth = terminal - contributed;
+    const multiple = contributed > 0 ? terminal / contributed : 0;
+
+    els.terminal.textContent = fmt(terminal);
+    els.contributed.textContent = fmt(contributed);
+    els.growth.textContent = fmt(growth);
+    els.multiple.textContent = multiple.toFixed(2) + '×';
+
+    // Update chart
+    const ctx = document.getElementById('sim-chart').getContext('2d');
+    if (chart){ chart.destroy(); }
+
+    const grad = ctx.createLinearGradient(0, 0, 0, 380);
+    grad.addColorStop(0, 'rgba(201,168,76,0.25)');
+    grad.addColorStop(1, 'rgba(201,168,76,0.0)');
+
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: yearLabels,
+        datasets: [
+          {
+            label: 'Portfolio Value',
+            data: balanceSeries,
+            borderColor: '#c9a84c',
+            backgroundColor: grad,
+            borderWidth: 2,
+            fill: true,
+            tension: 0.25,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: '#c9a84c',
+            pointHoverBorderColor: '#0f0f0f',
+            pointHoverBorderWidth: 2,
+          },
+          {
+            label: 'Total Contributed',
+            data: contribSeries,
+            borderColor: '#5a7ea8',
+            borderWidth: 1.5,
+            borderDash: [4,4],
+            fill: false,
+            tension: 0.1,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#8a8680',
+              font: { family: "'JetBrains Mono', monospace", size: 10 },
+              boxWidth: 14, boxHeight: 2
+            }
+          },
+          tooltip: {
+            backgroundColor: '#161616',
+            borderColor: '#333',
+            borderWidth: 1,
+            titleColor: '#c9a84c',
+            bodyColor: '#e8e6e0',
+            titleFont: { family: "'JetBrains Mono', monospace", size: 11 },
+            bodyFont: { family: "'JetBrains Mono', monospace", size: 11 },
+            padding: 12,
+            callbacks: {
+              label: (ctx) => ctx.dataset.label + ': ' + fmtFull(ctx.parsed.y)
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(38,38,38,0.5)' },
+            ticks: {
+              color: '#5a5752',
+              font: { family: "'JetBrains Mono', monospace", size: 10 }
+            }
+          },
+          y: {
+            grid: { color: 'rgba(38,38,38,0.5)' },
+            ticks: {
+              color: '#5a5752',
+              font: { family: "'JetBrains Mono', monospace", size: 10 },
+              callback: (v) => fmt(v)
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ETF select swaps in the default CAGR
+  els.select.addEventListener('change', () => {
+    const opt = els.select.selectedOptions[0];
+    const c = parseFloat(opt.dataset.cagr);
+    els.cagr.value = c;
+    updateSim();
+  });
+
+  [els.initial, els.monthly, els.years, els.cagr].forEach(el => {
+    el.addEventListener('input', updateSim);
+  });
+
+  updateSim();
+</script>
+</body>
+</html>
